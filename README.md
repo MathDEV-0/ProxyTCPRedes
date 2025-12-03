@@ -5,6 +5,10 @@ Logs detalhados são gerados em CSV e podem ser visualizados através de gráfic
 
 ---
 
+#Vídeo 
+
+[![Assista ao vídeo](https://img.youtube.com/vi/VewE4dDHNuk/0.jpg)](https://youtu.be/VewE4dDHNuk)
+
 ## Estrutura do Projeto
 
 | Tipo | Classes / Arquivos | Observações |
