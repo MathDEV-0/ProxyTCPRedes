@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  tcp-server:
+    build:
+      context: .
+      target: server
+    container_name: tcp-server
+    networks:
+      - internalnet
+    ports:
+      - "9000:9000"
+    # Adicionar restart policy para garantir que inicie
+    restart: unless-stopped
+
+  tcp-proxy:
+    build:
+      context: .
+      target: proxy
+    container_name: tcp-proxy
+    depends_on:
+      tcp-server:
+        condition: service_started # Esperar o server iniciar
+    networks:
+      - internalnet
+    environment:
+      - TARGET_HOST=tcp-server
+      - TARGET_PORT=9000
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - ./proxy_csv:/app/output
+      - ./logs:/app/logs
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
+
+networks:
+  internalnet:
+    driver: bridge

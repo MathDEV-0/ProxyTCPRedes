@@ -1,0 +1,2 @@
+docker exec -it tcp-proxy /bin/bash
+docker cp tcp-proxy:/app/logs/<nome.csv> ./logs/
