@@ -1,0 +1,51 @@
+# ===========================
+# Acessar o container
+# ===========================
+docker exec -it tcp-proxy /bin/bash
+
+# ===========================
+# Cenário 1: RTT baixo, 0% perda
+# ===========================
+tc qdisc del dev eth0 root || true
+# Rede padrão, sem alterações
+# Testar funções rápidas: sendTestData, startChat
+java -cp target/classes network.ClientMain
+
+# ===========================
+# Cenário 2: 50ms de atraso, 1% de perda
+# ===========================
+tc qdisc del dev eth0 root || true
+tc qdisc add dev eth0 root netem delay 50ms loss 1%
+# Testar bursts e dados grandes: sendBurstData, sendBigData
+java -cp target/classes network.ClientMain
+tc qdisc del dev eth0 root
+
+# ===========================
+# Cenário 3: 100ms de atraso, 2% de perda
+# ===========================
+tc qdisc del dev eth0 root || true
+tc qdisc add dev eth0 root netem delay 100ms loss 2%
+# Testar streaming e envio controlado: sendStreamingData, sendControlledData
+java -cp target/classes network.ClientMain
+tc qdisc del dev eth0 root
+
+# ===========================
+# Cenário 4: Limitação de banda 5 Mbps
+# ===========================
+tc qdisc del dev eth0 root || true
+tc qdisc add dev eth0 root tbf rate 5mbit burst 32kbit latency 400ms
+# Testar dados grandes e envio controlado: sendBigData, sendControlledData
+java -cp target/classes network.ClientMain
+tc qdisc del dev eth0 root
+
+# ===========================
+# Cenário 5: Combinação atraso + perda + limitação
+# ===========================
+tc qdisc del dev eth0 root || true
+# Aplicar netem com atraso/perda
+tc qdisc add dev eth0 root handle 1: netem delay 100ms loss 2%
+# Encadear TBF para limitar banda sobre o netem
+tc qdisc add dev eth0 parent 1: handle 10: tbf rate 5mbit burst 32kbit latency 400ms
+# Testar streaming e bursts: sendStreamingData, sendBurstData
+java -cp target/classes network.ClientMain
+tc qdisc del dev eth0 root
